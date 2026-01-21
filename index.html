@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will Your Post Go Viral?</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.ico">
+    <meta name="description" content="Analyze your X posts using the actual open-source algorithm. Get a viral score and actionable recommendations.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .language-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: rgba(29, 155, 240, 0.08);
+            border: 1.5px solid rgba(29, 155, 240, 0.25);
+            border-radius: 10px;
+            padding: 8px 4px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .lang-btn {
+            padding: 8px 14px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.65);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            position: relative;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .lang-btn:first-child::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .lang-btn.active {
+            background: rgba(29, 155, 240, 0.25);
+            color: #1d9bf0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(29, 155, 240, 0.2);
+        }
+        
+        .lang-btn:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(29, 155, 240, 0.1);
+            border: 2px solid rgba(29, 155, 240, 0.3);
+            padding: 12px 24px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 20px;
+            object-fit: cover;
+            border: 2px solid rgba(29, 155, 240, 0.3);
+            box-shadow: 0 2px 8px rgba(29, 155, 240, 0.15);
+        }
+        
+        .logo-icon {
+            font-size: 24px;
+        }
+        
+        .logo-text {
+            color: #1d9bf0;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+        
+        h1 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #1d9bf0 0%, #7856ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+        }
+        
+        .credit {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .input-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #1d9bf0;
+        }
+        
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .char-count {
+            text-align: right;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 8px;
+        }
+        
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #1d9bf0 0%, #7856ff 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(29, 155, 240, 0.3);
+        }
+        
+        .analyze-btn:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .score-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .score-label {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        
+        .score-value {
+            font-size: 96px;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        
+        .score-max {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 20px;
+        }
+        
+        .verdict {
+            font-size: 24px;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        
+        .verdict.viral {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 2px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .verdict.good {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .verdict.meh {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .verdict.bad {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .signal-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .signal-card.positive {
+            border-left: 4px solid #22c55e;
+        }
+        
+        .signal-card.negative {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .signal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .signal-icon {
+            font-size: 24px;
+        }
+        
+        .signal-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .signal-status {
+            margin-left: auto;
+            font-size: 20px;
+        }
+        
+        .signal-description {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.5;
+        }
+        
+        .recommendations {
+            background: rgba(29, 155, 240, 0.1);
+            border: 2px solid rgba(29, 155, 240, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+        }
+        
+        .recommendations h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1d9bf0;
+        }
+        
+        .recommendation-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .recommendation-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .recommendation-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: #1d9bf0;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .social-follow {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(29, 155, 240, 0.15);
+        }
+        
+        .follow-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, rgba(29, 155, 240, 0.1) 0%, rgba(120, 86, 255, 0.05) 100%);
+            border: 1px solid rgba(29, 155, 240, 0.25);
+            border-radius: 24px;
+            color: #1d9bf0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .follow-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(29, 155, 240, 0.1);
+            transition: left 0.4s ease;
+        }
+        
+        .follow-btn:hover {
+            border-color: rgba(29, 155, 240, 0.4);
+            box-shadow: 0 4px 16px rgba(29, 155, 240, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .follow-btn:hover::before {
+            left: 100%;
+        }
+        
+        .follow-btn-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .follow-icon {
+            font-size: 16px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="language-toggle">
+                <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
+                <button class="lang-btn" onclick="switchLanguage('vi')">VI</button>
+            </div>
+            <div class="logo">
+                <span class="logo-text" data-i18n="app-title"> 𝕏 VIRAL SCORE ANALYZER</span>
+            </div>
+            <h1 data-i18n="page-title">Will Your Post Go Viral?</h1>
+            <p class="subtitle" data-i18n="subtitle">Based on X's open-source algorithm</p>
+            <p class="credit" data-i18n="credit">Analyzed using the actual Grok transformer signals</p>
+        </header>
+        
+        <div class="input-section">
+            <label for="tweetInput" data-i18n="input-label">Paste your post here:</label>
+            <textarea 
+                id="tweetInput" 
+                placeholder="Enter your post text... (Be as specific as possible for better analysis)"
+                maxlength="10000"
+            ></textarea>
+            <div class="char-count">
+                <span id="charCount">0</span> <span data-i18n="char-label">characters</span>
+            </div>
+            <button class="analyze-btn" onclick="analyzeTweet()" data-i18n="analyze-btn">
+                🚀 Analyze Viral Potential
+            </button>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="score-card">
+                <div class="score-label" data-i18n="score-label">Viral Score</div>
+                <div class="score-value" id="scoreValue">0</div>
+                <div class="score-max">/ 100</div>
+                <div class="verdict" id="verdict">Analyzing...</div>
+            </div>
+            
+            <div class="signals-grid" id="signalsGrid"></div>
+            
+            <div class="recommendations" id="recommendations"></div>
+        </div>
+        
+        <div class="footer">
+            <p data-i18n="footer-credit">Built by Sharbel • Powered by X's open-source algorithm</p>
+            <p style="margin-top: 8px;">
+                <a href="https://github.com/xai-org/x-algorithm" target="_blank" data-i18n="footer-link">View the algorithm code →</a>
+            </p>
+            <p style="margin-top: 12px; font-size: 12px; color: rgba(255, 255, 255, 0.3);" data-i18n="code-credit">Code reference from author: Sharbel</p>
+            <div class="social-follow">
+                <a href="https://x.com/solotop999" target="_blank" class="follow-btn">
+                    <div class="follow-btn-content">
+                        <img src="logo.jpg" alt="Logo" class="logo-img">
+                        <span data-i18n="follow-text">Follow me!</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // i18n translations
+        const translations = {
+            vi: {
+                'app-title': '𝕏 VIRAL SCORE ANALYZER',
+                'page-title': 'Bài viết của bạn sẽ Viral chứ?',
+                'subtitle': 'Dựa trên thuật toán mã nguồn mở của X',
+                'credit': 'Phân tích sử dụng các tín hiệu Grok transformer thực tế',
+                'input-label': 'Dán bài post của bạn:',
+                'char-label': 'ký tự',
+                'analyze-btn': '🚀 Phân Tích Khả Năng Viral',
+                'score-label': 'Viral Score',
+                'analyzing': 'Đang phân tích...',
+                'footer-credit': 'Xây dựng bởi Sharbel • Được hỗ trợ bởi thuật toán mã nguồn mở của X',
+                'footer-link': 'Xem mã thuật toán →',
+                'code-credit': 'Tham khảo code từ tác giả: Sharbel',
+                'alert-empty': 'Vui lòng nhập nội dung bài post!',
+                'strong-hook': 'Mở Đầu Mạnh',
+                'hook-desc': 'Mở đầu với sự tò mò hoặc giá trị - tạo ra lượt nhấp và truy cập hồ sơ',
+                'weak-hook': 'Mở Đầu Yếu',
+                'weak-hook-desc': 'Câu đầu tiên không thu hút sự chú ý - có thể bị cuộn qua',
+                'start-with-question': 'Bắt đầu bằng một câu hỏi, tuyên bố mạnh mẽ, hoặc giá trị tức thì để kéo độc giả',
+                'asks-question': 'Đặt Câu Hỏi',
+                'question-desc': 'Câu hỏi tạo ra phản hồi - một trong những tín hiệu được cân nặng nhất',
+                'no-question': 'Không Có Câu Hỏi',
+                'no-question-desc': 'Thiếu cơ hội tương tác phản hồi',
+                'add-question': 'Thêm một câu hỏi ở cuối để khuyến khích phản hồi (tín hiệu thuật toán lớn)',
+                'good-length': 'Độ Dài Tốt',
+                'good-length-desc': 'tối ưu cho thời gian xem mà không mất sự chú ý',
+                'too-short': 'Quá Ngắn',
+                'too-short-desc': 'có thể không tạo đủ thời gian xem',
+                'very-long': 'Rất Dài',
+                'very-long-desc': 'có thể mất sự chú ý, nhưng tốt cho đối tượng cực kì tham gia',
+                'add-context': 'Thêm thêm bối cảnh hoặc giá trị - hướng tới 30-150 từ để có thời gian xem tốt hơn',
+                'data-driven': 'Dữ Liệu Cụ Thể',
+                'data-desc': 'Các con số và dữ liệu tăng độ tin cậy và khả năng chia sẻ',
+                'no-data': 'Không Có Dữ Liệu',
+                'no-data-desc': 'Thêm các con số cụ thể tăng lòng tin và lượt chia sẻ',
+                'add-numbers': 'Thêm các con số hoặc điểm dữ liệu cụ thể để tăng độ tin cậy và lượt chia sẻ',
+                'readable-format': 'Định Dạng Có Thể Đọc',
+                'readable-desc': 'Định dạng tốt giữ cho mọi người đọc (thời gian xem)',
+                'wall-of-text': 'Một Bức Tường Văn Bản',
+                'wall-desc': 'Văn bản dày đặc ảnh hưởng đến thời gian xem - mọi người cuộn qua',
+                'add-linebreaks': 'Chia thành các đoạn ngắn hơn - sử dụng ngắt dòng cho khả năng đọc',
+                'clear-cta': 'CTA Rõ Ràng',
+                'cta-desc': 'Cho mọi người biết phải làm gì - tạo ra các hành động tương tác cụ thể',
+                'no-cta': 'Không Có CTA',
+                'no-cta-desc': 'Thiếu lời kêu gọi hành động rõ ràng',
+                'add-cta': 'Kết thúc bằng lời kêu gọi hành động rõ ràng (phản hồi, chia sẻ, theo dõi, v.v.)',
+                'not-spammy': 'Không Phải Spam',
+                'not-spammy-desc': 'Tránh ngôn ngữ spam kích hoạt chặn/ẩn',
+                'spam-triggers': 'Kích Hoạt Spam',
+                'spam-desc': 'Chứa các cụm từ khiến mọi người bấm "không quan tâm" hoặc chặn',
+                'remove-spam': 'Loại bỏ ngôn ngữ giống spam - nó kích hoạt tín hiệu thuật toán tiêu cực',
+                'emotional-hook': 'Kích Hoạt Cảm Xúc',
+                'emotional-desc': 'Ngôn ngữ cảm xúc tạo ra sự tương tác trên tất cả các loại tín hiệu',
+                'neutral-tone': 'Tông Trung Lập',
+                'neutral-desc': 'Có thể không kích hoạt các phản ứng tương tác mạnh',
+                'add-emotion': 'Thêm ngôn ngữ cảm xúc hoặc cách diễn đạt có tác động để làm cho nó hấp dẫn hơn',
+                'tags-others': 'Gắn Thẻ Cho Những Người Khác',
+                'tags-desc': 'Nhắc đến người khác để mở rộng phạm vi ngoài mạng của bạn',
+                'thread-potential': 'Tiềm Năng Chuỗi Bài',
+                'thread-desc': 'Các chuỗi bài tạo ra sự tương tác bền vững và lượt truy cập hồ sơ',
+                'viral-potential': 'VIRAL POTENTIAL 🚀',
+                'strong-post': 'STRONG POST 💪',
+                'decent': 'DECENT 👍',
+                'needs-work': 'NEEDS WORK 🔧',
+                'excellent': 'Xuất Sắc!',
+                'excellent-text': 'Bài post của bạn có tiềm năng viral mạnh. Thuật toán sẽ thưởng cho nó bằng cách mở rộng tiếp cận!',
+                'how-to-improve': '💡 Cách Cải Thiện',
+                'remember': 'Nhớ rằng: Thuật toán thưởng cho các bài post tạo ra nhiều loại tương tác (không chỉ lượt thích)',
+                'quick-win': 'Cách Nhanh: Thêm câu hỏi HOẶC CTA rõ ràng để tăng tín hiệu tương tác',
+                'follow-text': 'Follow me!',
+                'algo-title': '📊 Các Tín Hiệu Thuật Toán',
+                'algo-1': '🎣 <strong>Mở Đầu Mạnh</strong> - Bắt lấy sự chú ý ngay câu đầu',
+                'algo-2': '❓ <strong>Câu Hỏi</strong> - Kích thích phản hồi và tương tác',
+                'algo-3': '📏 <strong>Độ Dài Tối Ưu</strong> - 30-150 từ để thời gian xem tốt',
+                'algo-4': '📊 <strong>Dữ Liệu Cụ Thể</strong> - Thêm con số và thống kê',
+                'algo-5': '📱 <strong>Định Dạng Rõ</strong> - Sử dụng ngắt dòng cho tính dễ đọc',
+                'algo-6': '🎯 <strong>CTA Rõ Ràng</strong> - Hãy nói độc giả phải làm gì',
+                'algo-7': '✨ <strong>Tránh Spam</strong> - Không dùng ngôn ngữ gợi lên cảnh báo',
+                'algo-8': '🔥 <strong>Kích Hoạt Cảm Xúc</strong> - Tạo phản ứng và cảm giác',
+                'algo-9': '👥 <strong>Gắn Thẻ Người Khác</strong> - Mở rộng reach ngoài mạng của bạn',
+                'algo-10': '🧵 <strong>Tiềm Năng Thread</strong> - Tạo nội dung đa phần'
+            },
+            en: {
+                'app-title': 'VIRAL SCORE ANALYZER',
+                'page-title': 'Will Your Post Go Viral?',
+                'subtitle': 'Based on X\'s open-source algorithm',
+                'credit': 'Analyzed using the actual Grok transformer signals',
+                'input-label': 'Paste your post here:',
+                'char-label': 'characters',
+                'analyze-btn': '🚀 Analyze Viral Potential',
+                'score-label': 'Viral Score',
+                'analyzing': 'Analyzing...',
+                'footer-credit': 'Built by Sharbel • Powered by X\'s open-source algorithm',
+                'footer-link': 'View the algorithm code →',
+                'code-credit': 'Code reference from author: Sharbel',
+                'alert-empty': 'Please enter some text to analyze!',
+                'strong-hook': 'Strong Hook',
+                'hook-desc': 'Opens with curiosity or value - drives clicks and profile visits',
+                'weak-hook': 'Weak Hook',
+                'weak-hook-desc': 'First sentence doesn\'t grab attention - may get scrolled past',
+                'start-with-question': 'Start with a question, bold claim, or immediate value to hook readers',
+                'asks-question': 'Asks Question',
+                'question-desc': 'Questions drive replies - one of the highest-weighted signals',
+                'no-question': 'No Question',
+                'no-question-desc': 'Missing opportunity for reply engagement',
+                'add-question': 'Add a question at the end to encourage replies (major algorithm signal)',
+                'good-length': 'Good Length',
+                'good-length-desc': 'optimal for dwell time without losing attention',
+                'too-short': 'Too Short',
+                'too-short-desc': 'may not drive enough dwell time',
+                'very-long': 'Very Long',
+                'very-long-desc': 'might lose attention, but good for super engaged audience',
+                'add-context': 'Add more context or value - aim for 30-150 words for better dwell time',
+                'data-driven': 'Data-Driven',
+                'data-desc': 'Numbers and data increase credibility and shareability',
+                'no-data': 'No Data',
+                'no-data-desc': 'Adding specific numbers increases trust and shares',
+                'add-numbers': 'Add specific numbers or data points to boost credibility and reposts',
+                'readable-format': 'Readable Format',
+                'readable-desc': 'Good formatting keeps people reading (dwell time)',
+                'wall-of-text': 'Wall of Text',
+                'wall-desc': 'Dense text hurts dwell time - people scroll past',
+                'add-linebreaks': 'Break into shorter paragraphs - use line breaks for readability',
+                'clear-cta': 'Clear CTA',
+                'cta-desc': 'Tells people what to do - drives specific engagement actions',
+                'no-cta': 'No CTA',
+                'no-cta-desc': 'Missing explicit call-to-action',
+                'add-cta': 'End with a clear call-to-action (reply, share, follow, etc.)',
+                'not-spammy': 'Not Spammy',
+                'not-spammy-desc': 'Avoids spam language that triggers blocks/mutes',
+                'spam-triggers': 'Spam Triggers',
+                'spam-desc': 'Contains phrases that make people hit "not interested" or block',
+                'remove-spam': 'Remove spam-like language - it triggers negative algorithm signals',
+                'emotional-hook': 'Emotional Hook',
+                'emotional-desc': 'Emotional language drives engagement across all signal types',
+                'neutral-tone': 'Neutral Tone',
+                'neutral-desc': 'May not trigger strong engagement reactions',
+                'add-emotion': 'Add emotional language or stakes to make it more engaging',
+                'tags-others': 'Tags Others',
+                'tags-desc': 'Mentions expand reach beyond your network',
+                'thread-potential': 'Thread Potential',
+                'thread-desc': 'Threads drive sustained engagement and profile clicks',
+                'viral-potential': 'VIRAL POTENTIAL 🚀',
+                'strong-post': 'STRONG POST 💪',
+                'decent': 'DECENT 👍',
+                'needs-work': 'NEEDS WORK 🔧',
+                'excellent': 'Excellent!',
+                'excellent-text': 'Your post has strong viral potential. The algorithm should reward this with good reach!',
+                'how-to-improve': '💡 How to Improve',
+                'remember': 'Remember: The algorithm rewards posts that drive multiple engagement types (not just likes)',
+                'quick-win': 'Quick win: Add a question OR clear CTA to boost engagement signals',
+                'follow-text': 'Follow me!'
+            }
+        };
+
+        let currentLanguage = 'en';
+        let lastText = null;  // Store last analyzed text
+
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Find and activate the correct button
+            if (lang === 'en') {
+                document.querySelectorAll('.lang-btn')[0].classList.add('active');
+            } else {
+                document.querySelectorAll('.lang-btn')[1].classList.add('active');
+            }
+            
+            // Update all elements with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(elem => {
+                const key = elem.getAttribute('data-i18n');
+                elem.textContent = translations[lang][key];
+            });
+            
+            // Update placeholder
+            const textarea = document.getElementById('tweetInput');
+            if (lang === 'vi') {
+                textarea.placeholder = 'Nhập nội dung bài post...';
+            } else {
+                textarea.placeholder = 'Enter your post text... (Be as specific as possible for better analysis)';
+            }
+            
+            // If there's a previous analysis, re-analyze with new language
+            if (lastText) {
+                const newAnalysis = analyzeContent(lastText);
+                displaySignals(newAnalysis.signals);
+                displayRecommendations(newAnalysis.recommendations);
+            }
+        }
+
+        function t(key) {
+            return translations[currentLanguage][key] || translations['vi'][key];
+        }
+
+        const textarea = document.getElementById('tweetInput');
+        const charCount = document.getElementById('charCount');
+        
+        textarea.addEventListener('input', () => {
+            charCount.textContent = textarea.value.length;
+        });
+        
+        function analyzeTweet() {
+            const text = textarea.value.trim();
+            
+            if (!text) {
+                alert(t('alert-empty'));
+                return;
+            }
+            
+            // Run analysis
+            const analysis = analyzeContent(text);
+            lastText = text;  // Store original text
+            
+            // Show results with animation
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Display score
+            animateScore(analysis.score);
+            
+            // Display verdict
+            displayVerdict(analysis.score, analysis.verdict);
+            
+            // Display signals
+            displaySignals(analysis.signals);
+            
+            // Display recommendations
+            displayRecommendations(analysis.recommendations);
+        }
+        
+        function analyzeContent(text) {
+            const signals = [];
+            let score = 0;
+            const recommendations = [];
+            
+            // Signal 1: Has a Hook (first sentence quality)
+            const firstSentence = text.split(/[.!?]/)[0];
+            const hasHook = firstSentence.length > 0 && (
+                text.toLowerCase().includes('how to') ||
+                text.toLowerCase().includes('why') ||
+                text.match(/\?/) ||
+                text.toLowerCase().includes('secret') ||
+                text.toLowerCase().includes('never') ||
+                firstSentence.length < 100
+            );
+            if (hasHook) {
+                score += 15;
+                signals.push({
+                    name: t('strong-hook'),
+                    icon: '🎣',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('hook-desc')
+                });
+            } else {
+                signals.push({
+                    name: t('weak-hook'),
+                    icon: '🎣',
+                    status: '❌',
+                    type: 'negative',
+                    description: t('weak-hook-desc')
+                });
+                recommendations.push({
+                    icon: '💡',
+                    text: t('start-with-question')
+                });
+            }
+            
+            // Signal 2: Asks a Question (drives replies)
+            const hasQuestion = text.includes('?');
+            if (hasQuestion) {
+                score += 12;
+                signals.push({
+                    name: t('asks-question'),
+                    icon: '❓',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('question-desc')
+                });
+            } else {
+                signals.push({
+                    name: t('no-question'),
+                    icon: '❓',
+                    status: '⚠️',
+                    type: 'negative',
+                    description: t('no-question-desc')
+                });
+                recommendations.push({
+                    icon: '🗣️',
+                    text: t('add-question')
+                });
+            }
+            
+            // Signal 3: Optimal Length (dwell time)
+            const wordCount = text.split(/\s+/).length;
+            const optimalLength = wordCount >= 30 && wordCount <= 150;
+            if (optimalLength) {
+                score += 10;
+                signals.push({
+                    name: t('good-length'),
+                    icon: '📏',
+                    status: '✅',
+                    type: 'positive',
+                    description: `${wordCount} từ - ${t('good-length-desc')}`
+                });
+            } else if (wordCount < 30) {
+                signals.push({
+                    name: t('too-short'),
+                    icon: '📏',
+                    status: '⚠️',
+                    type: 'negative',
+                    description: `${wordCount} từ - ${t('too-short-desc')}`
+                });
+                recommendations.push({
+                    icon: '✍️',
+                    text: t('add-context')
+                });
+            } else {
+                score += 5;
+                signals.push({
+                    name: t('very-long'),
+                    icon: '📏',
+                    status: '⚠️',
+                    type: 'negative',
+                    description: `${wordCount} từ - ${t('very-long-desc')}`
+                });
+            }
+            
+            // Signal 4: Includes Numbers/Data (shareability)
+            const hasNumbers = /\d+/.test(text);
+            if (hasNumbers) {
+                score += 8;
+                signals.push({
+                    name: t('data-driven'),
+                    icon: '📊',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('data-desc')
+                });
+            } else {
+                signals.push({
+                    name: t('no-data'),
+                    icon: '📊',
+                    status: '⚠️',
+                    type: 'negative',
+                    description: t('no-data-desc')
+                });
+                recommendations.push({
+                    icon: '🔢',
+                    text: t('add-numbers')
+                });
+            }
+            
+            // Signal 5: Line Breaks (readability/dwell)
+            const lineBreaks = (text.match(/\n/g) || []).length;
+            const hasGoodFormatting = lineBreaks >= 2 || wordCount < 40;
+            if (hasGoodFormatting) {
+                score += 8;
+                signals.push({
+                    name: t('readable-format'),
+                    icon: '📱',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('readable-desc')
+                });
+            } else {
+                signals.push({
+                    name: t('wall-of-text'),
+                    icon: '📱',
+                    status: '❌',
+                    type: 'negative',
+                    description: t('wall-desc')
+                });
+                recommendations.push({
+                    icon: '⏎',
+                    text: t('add-linebreaks')
+                });
+            }
+            
+            // Signal 6: Has Call-to-Action (drives multiple engagements)
+            const hasCTA = text.toLowerCase().match(/reply|comment|share|repost|like|follow|click|check|read|watch|listen|trả lời|bình luận|chia sẻ|thích|theo dõi/);
+            if (hasCTA) {
+                score += 10;
+                signals.push({
+                    name: t('clear-cta'),
+                    icon: '🎯',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('cta-desc')
+                });
+            } else {
+                signals.push({
+                    name: t('no-cta'),
+                    icon: '🎯',
+                    status: '⚠️',
+                    type: 'negative',
+                    description: t('no-cta-desc')
+                });
+                recommendations.push({
+                    icon: '👉',
+                    text: t('add-cta')
+                });
+            }
+            
+            // Signal 7: Avoids Spam Triggers (negative signals)
+            const spamTriggers = text.toLowerCase().match(/buy now|click here|limited time|act now|guarantee|100%|free money|dm me/g);
+            if (!spamTriggers) {
+                score += 12;
+                signals.push({
+                    name: t('not-spammy'),
+                    icon: '✨',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('not-spammy-desc')
+                });
+            } else {
+                score -= 15;
+                signals.push({
+                    name: t('spam-triggers'),
+                    icon: '⚠️',
+                    status: '❌',
+                    type: 'negative',
+                    description: t('spam-desc')
+                });
+                recommendations.push({
+                    icon: '🚫',
+                    text: t('remove-spam')
+                });
+            }
+            
+            // Signal 8: Emotional Trigger (engagement driver)
+            const hasEmotion = text.match(/[!]{1,3}/) || 
+                text.toLowerCase().match(/love|hate|amazing|terrible|shocking|incredible|wild|insane|genius|stupid|brilliant|yêu|ghét|tuyệt vời|khủng khiếp/);
+            if (hasEmotion) {
+                score += 10;
+                signals.push({
+                    name: t('emotional-hook'),
+                    icon: '🔥',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('emotional-desc')
+                });
+            } else {
+                signals.push({
+                    name: t('neutral-tone'),
+                    icon: '😐',
+                    status: '⚠️',
+                    type: 'negative',
+                    description: t('neutral-desc')
+                });
+                recommendations.push({
+                    icon: '💥',
+                    text: t('add-emotion')
+                });
+            }
+            
+            // Signal 9: Mentions/Tags (network effects)
+            const hasMentions = text.includes('@');
+            if (hasMentions) {
+                score += 5;
+                signals.push({
+                    name: t('tags-others'),
+                    icon: '👥',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('tags-desc')
+                });
+            }
+            
+            // Signal 10: Thread Potential (continuation engagement)
+            const hasThreadHint = text.toLowerCase().match(/thread|1\/|here's|here are|\d+\s+(things|ways|reasons|tips|điều|cách|lý do|mẹo)/);
+            if (hasThreadHint) {
+                score += 8;
+                signals.push({
+                    name: t('thread-potential'),
+                    icon: '🧵',
+                    status: '✅',
+                    type: 'positive',
+                    description: t('thread-desc')
+                });
+            }
+            
+            // Calculate verdict
+            let verdict = '';
+            if (score >= 80) {
+                verdict = t('viral-potential');
+            } else if (score >= 60) {
+                verdict = t('strong-post');
+            } else if (score >= 40) {
+                verdict = t('decent');
+            } else {
+                verdict = t('needs-work');
+            }
+            
+            // General recommendations
+            if (score < 70) {
+                recommendations.push({
+                    icon: '🎓',
+                    text: t('remember')
+                });
+            }
+            
+            if (!hasQuestion && !hasCTA) {
+                recommendations.push({
+                    icon: '⚡',
+                    text: t('quick-win')
+                });
+            }
+            
+            return {
+                score: Math.min(100, Math.max(0, score)),
+                verdict,
+                signals,
+                recommendations
+            };
+        }
+        
+        function animateScore(targetScore) {
+            const scoreElement = document.getElementById('scoreValue');
+            let current = 0;
+            const duration = 1500;
+            const steps = 60;
+            const increment = targetScore / steps;
+            const stepDuration = duration / steps;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= targetScore) {
+                    current = targetScore;
+                    clearInterval(timer);
+                }
+                scoreElement.textContent = Math.round(current);
+                
+                // Color based on score
+                if (current >= 80) {
+                    scoreElement.style.color = '#22c55e';
+                } else if (current >= 60) {
+                    scoreElement.style.color = '#3b82f6';
+                } else if (current >= 40) {
+                    scoreElement.style.color = '#fbbf24';
+                } else {
+                    scoreElement.style.color = '#ef4444';
+                }
+            }, stepDuration);
+        }
+        
+        function displayVerdict(score, verdict) {
+            const verdictElement = document.getElementById('verdict');
+            verdictElement.textContent = verdict;
+            
+            // Set verdict class
+            verdictElement.className = 'verdict';
+            if (score >= 80) {
+                verdictElement.classList.add('viral');
+            } else if (score >= 60) {
+                verdictElement.classList.add('good');
+            } else if (score >= 40) {
+                verdictElement.classList.add('meh');
+            } else {
+                verdictElement.classList.add('bad');
+            }
+        }
+        
+        function displaySignals(signals) {
+            const grid = document.getElementById('signalsGrid');
+            grid.innerHTML = signals.map(signal => `
+                <div class="signal-card ${signal.type}">
+                    <div class="signal-header">
+                        <span class="signal-icon">${signal.icon}</span>
+                        <span class="signal-name">${signal.name}</span>
+                        <span class="signal-status">${signal.status}</span>
+                    </div>
+                    <div class="signal-description">${signal.description}</div>
+                </div>
+            `).join('');
+        }
+        
+        function displayRecommendations(recommendations) {
+            const recsContainer = document.getElementById('recommendations');
+            
+            if (recommendations.length === 0) {
+                recsContainer.innerHTML = `
+                    <h3>${t('excellent')}</h3>
+                    <div class="recommendation-item">
+                        <span class="recommendation-icon">✨</span>
+                        <span class="recommendation-text">${t('excellent-text')}</span>
+                    </div>
+                `;
+            } else {
+                recsContainer.innerHTML = `
+                    <h3>${t('how-to-improve')}</h3>
+                    ${recommendations.map(rec => `
+                        <div class="recommendation-item">
+                            <span class="recommendation-icon">${rec.icon}</span>
+                            <span class="recommendation-text">${rec.text}</span>
+                        </div>
+                    `).join('')}
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
